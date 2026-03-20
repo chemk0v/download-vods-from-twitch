@@ -6,7 +6,7 @@ from google.oauth2.credentials import Credentials
 
 # ===== Secrets =====
 client_secret_json = os.getenv("CLIENT_SECRET_JSON")
-token_json = os.getenv("YOUTUBE_TOKEN_JSON")
+token_json = os.getenv("YOUTUBE_TOKEN")
 twitch_url = os.getenv("TWITCH_URL")
 
 # ===== Создаём файлы =====
