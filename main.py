@@ -49,12 +49,13 @@ else:
 print("Final title:", final_title)
 
 # ======================
-# Скачивание VOD
+# Скачивание VOD (ОГРАНИЧЕНИЕ ДО 720p)
 # ======================
 
 ydl_opts = {
     "outtmpl": "video.mp4",
-    "format": "bestvideo+bestaudio/best"
+    "format": "bestvideo[height<=720]+bestaudio/best[height<=720]",
+    "merge_output_format": "mp4"
 }
 
 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
