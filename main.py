@@ -1,22 +1,57 @@
 import os
 import yt_dlp
+from datetime import datetime
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from google.oauth2.credentials import Credentials
 
-# ===== Secrets =====
+# ======================
+# Secrets / env
+# ======================
+
 client_secret_json = os.getenv("CLIENT_SECRET_JSON")
 token_json = os.getenv("YOUTUBE_TOKEN")
 twitch_url = os.getenv("TWITCH_URL")
 
-# ===== Создаём файлы =====
+# ======================
+# Создаём файлы
+# ======================
+
 with open("client_secret.json", "w") as f:
     f.write(client_secret_json)
 
 with open("token.json", "w") as f:
     f.write(token_json)
 
-# ===== Скачивание VOD =====
+# ======================
+# Получаем metadata (title + date)
+# ======================
+
+with yt_dlp.YoutubeDL({}) as ydl:
+    info = ydl.extract_info(twitch_url, download=False)
+
+    stream_title = info.get("title", "Twitch VOD")
+    upload_date = info.get("upload_date")  # YYYYMMDD
+
+# Форматируем дату
+if upload_date:
+    date_obj = datetime.strptime(upload_date, "%Y%m%d")
+    formatted_date = date_obj.strftime("%d.%m.%Y")
+else:
+    formatted_date = ""
+
+# Итоговое название
+if formatted_date:
+    final_title = f"{formatted_date} | {stream_title}"
+else:
+    final_title = stream_title
+
+print("Final title:", final_title)
+
+# ======================
+# Скачивание VOD
+# ======================
+
 ydl_opts = {
     "outtmpl": "video.mp4",
     "format": "bestvideo+bestaudio/best"
@@ -25,15 +60,21 @@ ydl_opts = {
 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
     ydl.download([twitch_url])
 
-# ===== YouTube auth =====
+# ======================
+# Авторизация YouTube
+# ======================
+
 creds = Credentials.from_authorized_user_file("token.json")
 youtube = build("youtube", "v3", credentials=creds)
 
-# ===== Upload =====
+# ======================
+# Загрузка видео
+# ======================
+
 request_body = {
     "snippet": {
-        "title": "Twitch VOD",
-        "description": "Auto upload",
+        "title": final_title,
+        "description": "Auto uploaded Twitch VOD",
         "categoryId": "22"
     },
     "status": {
@@ -53,6 +94,6 @@ response = None
 while response is None:
     status, response = request.next_chunk()
     if status:
-        print(f"Progress: {int(status.progress() * 100)}%")
+        print(f"Upload progress: {int(status.progress() * 100)}%")
 
-print("Done!")
+print("Upload complete!")
