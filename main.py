@@ -34,6 +34,7 @@ with yt_dlp.YoutubeDL({}) as ydl:
 
     stream_title = info.get("title")
     timestamp = info.get("timestamp")
+    duration = info.get("duration")  # 👈 длительность в секундах
 
 # ======================
 # Безопасность title
@@ -66,18 +67,29 @@ else:
 # ======================
 
 final_title = re.sub(r'[<>:"/\\?*]', '-', final_title)
-final_title = final_title.replace(">", "-")
 final_title = final_title[:100]
 
 print("FINAL TITLE:", final_title)
 
 # ======================
-# Скачивание VOD (720p)
+# Выбор качества
+# ======================
+
+# 4 часа 10 минут = 4*3600 + 10*60 = 15000 секунд
+if duration and duration > 15000:
+    print("Duration > 4h10m → downloading 720p")
+    format_quality = "bestvideo[height<=720]+bestaudio/best[height<=720]"
+else:
+    print("Duration <= 4h10m → downloading 1080p")
+    format_quality = "bestvideo[height<=1080]+bestaudio/best[height<=1080]"
+
+# ======================
+# Скачивание VOD
 # ======================
 
 ydl_opts = {
     "outtmpl": "video.mp4",
-    "format": "bestvideo[height<=720]+bestaudio/best[height<=720]",
+    "format": format_quality,
     "merge_output_format": "mp4"
 }
 
