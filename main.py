@@ -1,6 +1,7 @@
 import os
 import yt_dlp
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from google.oauth2.credentials import Credentials
@@ -24,23 +25,29 @@ with open("token.json", "w") as f:
     f.write(token_json)
 
 # ======================
-# Получаем metadata (title + date)
+# Получаем metadata (title + timestamp)
 # ======================
 
 with yt_dlp.YoutubeDL({}) as ydl:
     info = ydl.extract_info(twitch_url, download=False)
 
     stream_title = info.get("title", "Twitch VOD")
-    upload_date = info.get("upload_date")  # YYYYMMDD
+    timestamp = info.get("timestamp")  # UNIX timestamp
 
-# Форматируем дату
-if upload_date:
-    date_obj = datetime.strptime(upload_date, "%Y%m%d")
-    formatted_date = date_obj.strftime("%d.%m.%Y")
+# ======================
+# Дата по Москве
+# ======================
+
+if timestamp:
+    dt_moscow = datetime.fromtimestamp(timestamp, ZoneInfo("Europe/Moscow"))
+    formatted_date = dt_moscow.strftime("%d.%m.%Y")
 else:
     formatted_date = ""
 
+# ======================
 # Итоговое название
+# ======================
+
 if formatted_date:
     final_title = f"{formatted_date} | {stream_title}"
 else:
@@ -49,7 +56,7 @@ else:
 print("Final title:", final_title)
 
 # ======================
-# Скачивание VOD (ОГРАНИЧЕНИЕ ДО 720p)
+# Скачивание VOD (до 720p)
 # ======================
 
 ydl_opts = {
