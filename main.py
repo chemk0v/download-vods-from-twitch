@@ -65,7 +65,7 @@ else:
 # Очистка title
 # ======================
 
-final_title = re.sub(r'[<>:"/\\|?*]', '-', final_title)
+final_title = re.sub(r'[<>:"/\\?*]', '-', final_title)
 final_title = final_title.replace(">", "-")
 final_title = final_title[:100]
 
